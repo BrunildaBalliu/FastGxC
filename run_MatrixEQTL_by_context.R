@@ -1,12 +1,8 @@
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-#%%%%%%%%%%%%%%% Brunilda Balliu
-#%%%%%%%%%%%%%%% April 20th 2020
+#%%%%%%%%%%%%%%% Andrew Lu & Brunilda Balliu 
+#%%%%%%%%%%%%%%% April 2nd 2020
 #%%%%%%%%%%%%%%% Script to run Matrix EQTL by content
-#%%%%%%%%%%%%%%% For Hoffman
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-# qrsh -l h_data=16G,h_rt=12:00:00,highp
-# module load R/3.6.1
 
 ## Arguments
 args=commandArgs(TRUE)
@@ -22,7 +18,7 @@ setDTthreads(1)
 print(paste0("data.table getDTthreads(): ",getDTthreads()))
 
 ## Location of data files.
-project.dir = '/u/project/zaitlenlab/bballiu/FastGxE';
+project.dir = getwd(); # change to desired directory
 
 ## Assign TISSUE_NAME and scale
 if(exp_scale == 1) exp_suffix = ".v8.EUR.normalized_expression"
@@ -114,7 +110,7 @@ snpspos = fread(input = snps_location_file_name, header = TRUE, stringsAsFactors
 
 # Keep SNP with MAF>5% in each tissue 
 if(0){
-  passSNPs=data.frame(fread(input = paste0(project.dir,"/data//GTEx_v8/misc/GTEx_v8_SNPs_MAFgeq5_each_tissue.txt"), header = T))
+  passSNPs=data.frame(fread(input = paste0(project.dir,"/data/GTEx_v8/misc/GTEx_v8_SNPs_MAFgeq5_each_tissue.txt"), header = T))
   snps$RowReorder(rownames(snps) %in% passSNPs$SNP);
   snpspos=snpspos[snpspos$snp %in% passSNPs$SNP,]
 

@@ -1,18 +1,8 @@
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-#%%%%%%%%%%%%%%% Brunilda Balliu 
+#%%%%%%%%%%%%%%% Andrew Lu & Brunilda Balliu 
 #%%%%%%%%%%%%%%% April 2nd 2020
-#%%%%%%%%%%%%%%% Script to decompose expression of GTEx samples and run PCA
-#%%%%%%%%%%%%%%% For Hoffman
+#%%%%%%%%%%%%%%% Script to decompose expression of GTEx samples 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-# qrsh -l h_data=16G,h_rt=12:00:00,highp
-# module load R/3.6.1
-
-# Change 
-# normalized_expression
-# to 
-# normalized_and_residualized
-# to merge the files residualized for covariates
 
 #%%%%%%%%%%%%%%% R libraries 
 library(data.table)
@@ -40,9 +30,9 @@ decompose=function(X,design){
 }
 
 #%%%%%%%%%%%%%%% Location of data files.
-data.dir = '/u/home/b/bballiu/FastGxE/data/GTEx_v8/MatrixEQTL_input/'
-cov.dir = '/u/home/b/bballiu/FastGxE/data/GTEx_v8/expression_covariates/'
-res.dir = '/u/home/b/bballiu/FastGxE/results/pca/'
+data.dir = '/u/home/b/bballiu/FastGxE/data/GTEx_v8/MatrixEQTL_input/' # change to your own directory 
+cov.dir = '/u/home/b/bballiu/FastGxE/data/GTEx_v8/expression_covariates/' # change to your own directory 
+res.dir = '/u/home/b/bballiu/FastGxE/results/pca/' # change to your own directory 
 
 #%%%%%%%%%%%%%%% Read expression matrix, genes in columns, samples in rows.
 exp_all=data.frame(fread(input = paste0(data.dir,"all_tissues.v8.EUR.normalized_and_residualized_expression_merged.txt"), header = T, sep='\t'),  check.names = F, stringsAsFactors = F, row.names = 1) 
@@ -92,53 +82,3 @@ for(i in 1:length(tissues)){
          col.names = T, append = F, sep = '\t')
 }
 
-#%%%%%%%%%%%%%%% PCA of decomposed data
-if(0){
-print("Running PCA on full and decomposed data")
-
-#%%%%% Full matrix 
-# Remove all samples with NA values across all genes
-exp_all_noNA = exp_all[rowSums(is.na(exp_all))<ncol(exp_all)/2,]
-# Remove genes with NA values across all samples
-exp_all_noNA = exp_all_noNA[,colSums(is.na(exp_all_noNA))<nrow(exp_all_noNA)]
-# Keep 10K genes with least amount of NAs
-exp_all_noNA = exp_all_noNA[,names(sort(colSums(is.na(exp_all_noNA))))[1:10000]]
-# Run PCA and extract PCs
-ppca_res=pca(exp_all_noNA, method="ppca", center = T,scale. = T, nPcs=40)
-PCs=scores(ppca_res)
-fwrite(x = data.table(PCs,keep.rownames = T) %>% {setnames(., old = "rn", new = "sampleID")[]},  
-       file = paste0(res.dir,"PCs.v8.EUR.normalized_and_residualized_expression_full.txt"), quote = F, row.names = F, 
-       col.names = T, append = F, sep = '\t')
-print("Finished extracting and saving PCs from full expression matrix")
-
-
-#%%%%% Between matrix 
-# Remove all samples with NA values across all genes
-bexp_all_noNA = bexp_all[rowSums(is.na(bexp_all))<ncol(bexp_all)/2,]
-# Remove genes with NA values across all samples
-bexp_all_noNA = bexp_all_noNA[,colSums(is.na(bexp_all_noNA))<nrow(bexp_all_noNA)]
-# Keep 10K genes with least amount of NAs
-bexp_all_noNA = bexp_all_noNA[,names(sort(colSums(is.na(bexp_all_noNA))))[1:10000]]
-# Run PCA and extract PCs
-b_ppca_res=pca(bexp_all_noNA, method="ppca", center = T,scale. = T, nPcs=40)
-bPCs=scores(b_ppca_res)
-fwrite(x = data.table(bPCs,keep.rownames = T) %>% {setnames(., old = "rn", new = "sampleID")[]},  
-       file = paste0(res.dir,"PCs.v8.EUR.normalized_and_residualized_expression_homogeneous.txt"), quote = F, row.names = F, 
-       col.names = T, append = F, sep = '\t')
-print("Finished extracting and saving PCs from between-individuals variation matrix")
-
-#%%%%% Within matrix 
-# Remove all samples with NA values across all genes
-wexp_all_noNA = wexp_all[rowSums(is.na(wexp_all))<ncol(wexp_all)/2,] 
-# Remove all genes with NA values across all samples
-wexp_all_noNA = wexp_all_noNA[,colSums(is.na(wexp_all_noNA))<nrow(wexp_all_noNA)]
-# Keep 10K genes with least amount of NAs
-wexp_all_noNA = wexp_all_noNA[,names(sort(colSums(is.na(wexp_all_noNA))))[1:10000]]
-# Run PCA and extract PCs
-w_ppca_res=pca(wexp_all_noNA, method="ppca", center = T,scale. = T, nPcs=40)
-wPCs=scores(w_ppca_res)
-fwrite(x = data.table(wPCs,keep.rownames = T) %>% {setnames(., old = "rn", new = "sampleID")[]},  
-       file = paste0(res.dir,"PCs.v8.EUR.normalized_and_residualized_expression_heterogeneous.txt"), quote = F, row.names = F, 
-       col.names = T,append = F, sep = '\t')
-print("Finished extracting and saving PCs from within-individuals variation matrix")
-}
