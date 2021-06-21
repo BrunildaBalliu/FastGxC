@@ -10,7 +10,7 @@ library(reshape2)
 library(pcaMethods)
 library(magrittr)
 
-#%%%%%%%%%%%%%%% Function to decompose expression into homogeneous and heterogeneous tissue expression
+#%%%%%%%%%%%%%%% Function to decompose expression into context-shared and context-specific expression
 decompose=function(X,design){
   X = as.matrix(X)
   rep.measures = factor(design)
@@ -18,21 +18,19 @@ decompose=function(X,design){
     stop("A multilevel analysis can not be performed when at least one some sample is not repeated.")
   indiv.names = rownames(X)
   rownames(X) = as.character(rep.measures)
-  X.mean.indiv = matrix(apply(X, 2, tapply, rep.measures, 
-                              mean, na.rm = TRUE), nrow = length(unique(rep.measures)), 
-                        ncol = dim(X)[2], dimnames = list(levels(as.factor(rep.measures)), 
-                                                          colnames(X)))
+  X.mean.indiv = matrix(apply(X, 2, tapply, rep.measures, mean, na.rm = TRUE), 
+                        nrow = length(unique(rep.measures)), 
+                        ncol = dim(X)[2], 
+                        dimnames = list(levels(as.factor(rep.measures)), colnames(X)))
   Xb = X.mean.indiv[as.character(rep.measures), ]
   Xw = X - Xb
   dimnames(Xw) = list(indiv.names, colnames(X))
-  
   return(list(Xw=Xw,Xb=X.mean.indiv))
 }
 
 #%%%%%%%%%%%%%%% Location of data files.
-data.dir = '/u/home/b/bballiu/FastGxE/data/GTEx_v8/MatrixEQTL_input/' # change to your own directory 
-cov.dir = '/u/home/b/bballiu/FastGxE/data/GTEx_v8/expression_covariates/' # change to your own directory 
-res.dir = '/u/home/b/bballiu/FastGxE/results/pca/' # change to your own directory 
+data.dir = 'MatrixEQTL_input/' # change to your own directory 
+cov.dir = 'expression_covariates/' # change to your own directory 
 
 #%%%%%%%%%%%%%%% Read expression matrix, genes in columns, samples in rows.
 exp_all=data.frame(fread(input = paste0(data.dir,"all_tissues.v8.EUR.normalized_and_residualized_expression_merged.txt"), header = T, sep='\t'),  check.names = F, stringsAsFactors = F, row.names = 1) 

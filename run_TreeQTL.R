@@ -1,8 +1,7 @@
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-#%%%%%%%%%%%%%%% Brunilda Balliu 
+#%%%%%%%%%%%%%%% Andrew Lu & Brunilda Balliu 
 #%%%%%%%%%%%%%%% April 21st 2020
 #%%%%%%%%%%%%%%% Script to run TreeQTL by content
-#%%%%%%%%%%%%%%% For Hoffman
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 # qrsh -l h_data=80G,h_rt=12:00:00,highp
@@ -257,55 +256,5 @@ if(exp_scale %in% 5:6){
   get_eAssociations(eDiscoveries=eGenes, n_tests =n_tests_per_gene, m_eqtl_out = m_eqtl_outfile, 
                     out_file = paste0(treeQTL_dir,"/eAssoc_by_gene.AverageTissue",exp_suffix,".txt"), by_snp = FALSE)
 }
-
-# Get eSNPs
-if(0){
-if(exp_scale %in% 1:4){
-  
-  snps_by_tissue_file=paste0(project.dir, "/data/GTEx_v8/misc/GTEx_v8_SNPs_by_Tissue.txt")
-  if(file.exists(snps_by_tissue_file)){
-    print("Reading snps-by-tissue file")
-    snps_by_tissue=fread(input = snps_by_tissue_file, header = T, sep = ',')  
-  } else {
-    print("Making snps-by-tissue file")
-    MAF=data.frame(fread(input = paste0(project.dir,"/data/GTEx_v8/misc/GTEx_v8_SNPs_by_Tissue_MAF.txt"), header = T))
-    snps_by_tissue = MAF
-    for(i in 2:ncol(snps_by_tissue)){
-      snps_by_tissue[,i] = (rowSums(MAF[,-1]>=0.05)>=2)&(MAF[,i]>=0.05)
-    }
-    fwrite(x = snps_by_tissue, file = paste0(project.dir, "/data/GTEx_v8/misc/GTEx_v8_SNPs_by_Tissue.txt"), col.names = T, row.names = F)
-  }
-  
-  genes_by_tissue = data.frame(fread(input = "/u/project/zaitlenlab/bballiu/FastGxE/data/GTEx_v8/misc/GTEx_v8_Gene_by_Tissue_Expression.txt", header = T), 
-                               check.names = F,stringsAsFactors = F)
-  genes_by_tissue[rowSums(genes_by_tissue[,-1])<2,-1]=0
-  
-  n_tests_per_SNP=data.frame(fread(input = paste0(project.dir, "/results/eQTL_mapping/TreeQTL/n_genes_per_SNPs_Heterogeneous.txt"),
-                                   header = F),check.names = F, stringsAsFactors = F)
-  colnames(n_tests_per_SNP)=c("family", "n_tests")
-
-  eSNPs = get_eSNPs_multi_tissue_mod(genes_by_tissue = genes_by_tissue, snps_by_tissue = snps_by_tissue, 
-                                     n_tests_per_SNP = n_tests_per_SNP, m_eqtl_out_dir = m_eqtl_out_dir, 
-                                     tissue_names=tissue_names, level1 = level1, level2 = level2, level3 = level3, 
-                                     exp_suffix=exp_suffix)   
-  
-  fwrite(x = eSNPs,file = paste0(treeQTL_dir,"/eSNPs",exp_suffix,".txt"), sep = '\t', row.names = F, col.names = T)
-  
-}
-
-if(exp_scale %in% 5:6){
-  
-  n_tests_per_SNP=data.frame(fread(input = paste0(project.dir, "/results/eQTL_mapping/TreeQTL/n_genes_per_SNPs_Homogeneous.txt"),
-                                   header = F),check.names = F, stringsAsFactors = F)
-  colnames(n_tests_per_SNP)=c("family", "n_tests")
-  
-  m_eqtl_out <- list.files(m_eqtl_out_dir, pattern = pattern, full.names = TRUE)
-  
-  eSNPs = get_eSNPs(n_tests_per_SNP = n_tests_per_SNP, m_eqtl_out = m_eqtl_out, level1 = level1, level2 = level2)
-  fwrite(x = eSNPs,file = paste0(treeQTL_dir,"/eSNPs",exp_suffix,".txt"), sep = '\t', row.names = F, col.names = T)
-  
-}
-}
-
 
 print("run_TreeQTL.R finished!")
