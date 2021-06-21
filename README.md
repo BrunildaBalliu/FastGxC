@@ -1,7 +1,7 @@
 # FastGxC
 Computationally efficient and statistically powerful software for detecting context-specific eQTL effects in multi-context genomic studies
 
-For questions, please email bballiu@ucla.edu. 
+Scripts are still under construction but please email us (bballiu@ucla.edu and andrew.lu.chun@gmail.com) with comments / questions. 
 
 # Running FastGxC
 
