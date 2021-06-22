@@ -2,6 +2,7 @@
 Computationally efficient and statistically powerful software for detecting context-specific eQTL effects in multi-context genomic studies. Preprint available on BioRxiv at https://www.biorxiv.org/content/10.1101/2021.06.17.448889v1 
 
 Scripts are still under construction but please email us (bballiu@ucla.edu and andrew.lu.chun@gmail.com) with comments / questions. 
+Extended data with FastGxC results on GTEx and CLUES cohorts can be found at https://zenodo.org/record/5015123#.YNJ1WpNKjOR
 
 # Running FastGxC
 
