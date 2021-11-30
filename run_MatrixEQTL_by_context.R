@@ -8,6 +8,8 @@
 args=commandArgs(TRUE)
 exp_scale=as.numeric(args[1])
 i=as.numeric(args[2])
+out_dir=paste0(work_dir,'/results/')
+if(!dir.exists(out_dir)) dir.create(out_dir)
 
 ## Libraries and functions
 library(data.table)

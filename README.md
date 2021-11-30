@@ -11,7 +11,12 @@ Scripts are still under construction but please email us (bballiu@ucla.edu and a
 
 FastGxC works in three steps. 
 
+Step 0: If you want to run a toy example, you can generate simulated data by running 
+Rscript generate_simulated_data.R your_project_directory
+
 Step 1: For each individual, FastGxC decompose the phenotype of interest (e.g. gene expression) across C contexts (e.g. tissues or cell-types) into one context-shared and C context-specific components. This is done using the script _decompose_expression.R_.
+
+Rscript decompose_expression.R "/Users/bballiu/Documents/GitHub/FastGxC" "exp_mat.txt"
 
 Step 2: FastGxC estimates genetic effects on the context-shared component and each of the context-specific components separately using simple linear models as implemented in thr R package MatrixEQTL. This is done using the script _run_MatrixEQTL_by_context.R_.
 

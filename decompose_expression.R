@@ -1,16 +1,22 @@
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-#%%%%%%%%%%%%%%% Andrew Lu & Brunilda Balliu 
+#%%%%%%%%%%%%%%% Brunilda Balliu 
 #%%%%%%%%%%%%%%% April 2nd 2020
-#%%%%%%%%%%%%%%% Script to decompose expression of GTEx samples 
+#%%%%%%%%%%%%%%% Script to decompose expression into shared and context specific components
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+#%%%%%%%%%%%%%%%  Directories for input and output files 
+args=commandArgs(TRUE)
+work_dir = args[1]
+exp_mat_filename = args[2]
+data_dir=paste0(work_dir,'/data/') # directory with phenotype and genotype data
+if(!dir.exists(data_dir)) dir.create(data_dir)
 
 #%%%%%%%%%%%%%%% R libraries 
 library(data.table)
 library(reshape2)
-library(pcaMethods)
 library(magrittr)
 
-#%%%%%%%%%%%%%%% Function to decompose expression into context-shared and context-specific expression
+#%%%%%%%%%%%%%%% Function to decompose expression into context-shared and context-specific components
 decompose=function(X,design){
   X = as.matrix(X)
   rep.measures = factor(design)
@@ -28,37 +34,26 @@ decompose=function(X,design){
   return(list(Xw=Xw,Xb=X.mean.indiv))
 }
 
-#%%%%%%%%%%%%%%% Location of data files.
-data.dir = 'MatrixEQTL_input/' # change to your own directory 
-cov.dir = 'expression_covariates/' # change to your own directory 
-
 #%%%%%%%%%%%%%%% Read expression matrix, genes in columns, samples in rows.
-exp_all=data.frame(fread(input = paste0(data.dir,"all_tissues.v8.EUR.normalized_and_residualized_expression_merged.txt"), header = T, sep='\t'),  check.names = F, stringsAsFactors = F, row.names = 1) 
+exp_mat=read.table(file = paste0(data_dir,exp_mat_filename), sep = '\t')
 
 #%%%%%%%%%%%%%%% Print number of genes and samples
-sprintf("There are %s samples and %s genes. The max number of missing samples for a gene is  %s. The max number of missing genes for a sample is  %s.", nrow(exp_all), ncol(exp_all),max(colSums(is.na(exp_all))),max(rowSums(is.na(exp_all))))
+sprintf("There are %s samples and %s genes. The max number of missing samples for a gene is  %s. The max number of missing genes for a sample is  %s.", nrow(exp_mat), ncol(exp_mat),max(colSums(is.na(exp_mat))),max(rowSums(is.na(exp_mat))))
 
-#%%%%%%%%%%%%%%% Sample and tissue names
-sample_tissue_names=matrix(unlist(strsplit(rownames(exp_all), split = " - ")), ncol = 2,byrow = T)
-sample_names=sample_tissue_names[,1]
-tissue_names=sample_tissue_names[,2]
-tissues=unique(tissue_names)
+#%%%%%%%%%%%%%%% Sample and context names
+design=sapply(1:nrow(exp_mat), function(i) unlist(strsplit(rownames(exp_mat)[i], split = "_"))[1])
+context_names=sapply(1:nrow(exp_mat), function(i) unlist(strsplit(rownames(exp_mat)[i], split = "_"))[2])
+contexts=unique(context_names)
 
-#%%%%%%%%%%%%%%% Decompose expression into homogeneous and heterogeneous tissue expression
+#%%%%%%%%%%%%%%% Decompose expression into homogeneous and heterogeneous context expression
 print("Decomposing data")
-dec_exp_all=decompose(X = exp_all, design = sample_names)
+dec_exp_all=decompose(X = exp_mat, design = design)
 bexp_all=dec_exp_all$Xb
 wexp_all=dec_exp_all$Xw
 bexp_all[is.nan(bexp_all)]=NA
 wexp_all[is.nan(wexp_all)]=NA
 
-# Make sure the output from these two is the same
-# Change the sample name
-# exp_all[grepl(x = rownames(exp_all), pattern = sample_names[1]),colnames(exp_all)[1]]
-# wexp_all[grepl(x = rownames(wexp_all), pattern = sample_names[1]),colnames(exp_all)[1]] +
-# bexp_all[grepl(x = rownames(bexp_all), pattern = sample_names[1]),colnames(exp_all)[1]]
-
-sprintf("Between individual matrix: There are %s samples and %s genes. The max number of missing samples for a gene is  %s. The max number of missing genes for a sample is  %s.", nrow(bexp_all), ncol(bexp_all),max(colSums(is.na(bexp_all))),max(rowSums(is.na(bexp_all))))
+sprintf("Between individual matrix: There are %s individuals and %s genes. The max number of missing samples for a gene is  %s. The max number of missing genes for a sample is  %s.", nrow(bexp_all), ncol(bexp_all),max(colSums(is.na(bexp_all))),max(rowSums(is.na(bexp_all))))
 
 sprintf("Within individual matrix: There are %s samples and %s genes. The max number of missing samples for a gene is  %s. The max number of missing genes for a sample is  %s.", nrow(wexp_all), ncol(wexp_all),max(colSums(is.na(wexp_all))),max(rowSums(is.na(wexp_all))))
 
@@ -66,17 +61,17 @@ sprintf("Within individual matrix: There are %s samples and %s genes. The max nu
 print("Finished decomposition, saving files")
 
 print("Saving between-individuals variation matrix")
-fwrite(x = data.table(t(bexp_all),keep.rownames = T) %>% {setnames(., old = "rn", new = "geneID")[]},  
-       file = paste0(data.dir,"AverageTissue.v8.EUR.normalized_and_residualized_expression_homogeneous.txt"), quote = F, row.names = F, 
+fwrite(x = data.table(t(bexp_all),keep.rownames = T) %>% {setnames(., old = "rn", new = "geneID")[]}, 
+       file = paste0(data_dir,"context_shared_expression.txt"), quote = F, row.names = F, 
        col.names = T, append = F, sep = '\t')
 
-print("Saving within-individuals variation matrix for tissue: ")
-for(i in 1:length(tissues)){
-  print(tissues[i])
-  wexp_t = wexp_all[grep(pattern = tissues[i], rownames(wexp_all)),]
-  rownames(wexp_t)=gsub(pattern = paste0(" - ",tissues[i]), replacement = "", x = rownames(wexp_t))
+print("Saving within-individuals variation matrix for context: ")
+for(i in 1:length(contexts)){
+  print(contexts[i])
+  wexp_t = wexp_all[grep(pattern = contexts[i], rownames(wexp_all)),]
+  rownames(wexp_t)=gsub(pattern = paste0("_",contexts[i]), replacement = "", x = rownames(wexp_t))
   fwrite(x = data.table(t(wexp_t),keep.rownames = T) %>% {setnames(., old = "rn", new = "geneID")[]}, 
-         file = paste0(data.dir,tissues[i],".v8.EUR.normalized_and_residualized_expression_heterogeneous.txt"),quote = F, row.names = F, 
+         file = paste0(data_dir,contexts[i],"_specific_expression.txt"),quote = F, row.names = F, 
          col.names = T, append = F, sep = '\t')
 }
 
