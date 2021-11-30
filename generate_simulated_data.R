@@ -22,10 +22,10 @@ library(dplyr)
 
 # Parameters
 N = 300 # number of individuals
-n_genes = 10 # number of genes
-n_snps_per_gene=5
-n_contexts = 50 # number of contexts (e.g. tissues or cell types)
-mus = c(rep(5, n_contexts-1),0) # gene expression mean in each context for genotype = 0
+n_genes = 3 # number of genes
+n_snps_per_gene=2 # number of cis-SNPs per gene
+n_contexts = 5 # number of contexts (e.g. tissues or cell types)
+mus = c(rep(0, n_contexts-1),0) # gene expression mean in each context for genotype = 0
 maf = 0.1 # genotype minor allele frequency
 hsq = c(rep(0.2, n_contexts-1),0.4) # expression heritability, i.e. proportion of gene expression variance explained by genetics, in each context
 
@@ -41,12 +41,19 @@ colnames(genos) = paste0("snp",1:(n_snps_per_gene*n_genes))
 rownames(genos) = paste0("ind",1:N)
 write.table(x = t(data.table(genos, keep.rownames = T) %>% rename(snpid=rn)), file = paste0(data_dir,"SNPs.txt"), quote = F, sep = '\t', row.names = T, col.names = F)
 
-# Save SNP locations
-snp_loc=data.frame(snpid=colnames(genos), chr="chr1",pos=c(t(matrix(seq(1,n_genes*1e06, by = 1e06)) %*% 1:n_snps_per_gene)))
-write.table(x = snp_loc, file = paste0(data_dir,"SNPs_loc.txt"), quote = F, sep = '\t', row.names = F, col.names = T)
+# Save SNP location file
+snp_loc=data.frame(snpid=colnames(genos), chr="chr1",pos=rep(x = seq(1,n_genes*1e9, by = 1e9), each=n_snps_per_gene))
+write.table(x = snp_loc, file = paste0(data_dir,"snpsloc.txt"), quote = F, sep = '\t', row.names = F, col.names = T)
+
+# Save gene location file
+gene_loc=data.frame(geneid=paste0("gene",1:n_genes), 
+                    chr="chr1",
+                    s1=seq(1,n_genes*1e9, by = 1e9), 
+                    s2=seq(1,n_genes*1e9, by = 1e9)+ 1000)
+write.table(x = gene_loc, file = paste0(data_dir,"geneloc.txt"), quote = F, sep = '\t', row.names = F, col.names = T)
 
 # Use only one snp per gene to generate expression
-genos_with_effect = genos[,seq(from = 1, to = (n_snps_per_gene*n_genes), by = 5)]
+genos_with_effect = genos[,seq(from = 1, to = (n_snps_per_gene*n_genes), by = n_snps_per_gene)]
 
 # Generate expression matrix
 exp_mat=expand.grid(iid=paste0("ind",1:N),context=paste0("context",1:n_contexts))
@@ -71,4 +78,4 @@ for(i in 1:n_genes){
 
 rownames(exp_mat) = paste(exp_mat$iid,exp_mat$context, sep = "_")
 
-write.table(x = exp_mat[,-c(1:2)], file = paste0(data_dir,"exp_mat.txt"), quote = F, sep = '\t', row.names = T, col.names = T)
+write.table(x = exp_mat[,-c(1:2)], file = paste0(data_dir,"expression.txt"), quote = F, sep = '\t', row.names = T, col.names = T)

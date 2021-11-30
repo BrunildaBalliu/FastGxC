@@ -8,7 +8,7 @@
 args=commandArgs(TRUE)
 work_dir = args[1]
 exp_mat_filename = args[2]
-data_dir=paste0(work_dir,'/data/') # directory with phenotype and genotype data
+data_dir=paste0(work_dir,'/data/') # directory with phenotype and genotype data1
 if(!dir.exists(data_dir)) dir.create(data_dir)
 
 #%%%%%%%%%%%%%%% R libraries 
@@ -68,7 +68,7 @@ fwrite(x = data.table(t(bexp_all),keep.rownames = T) %>% {setnames(., old = "rn"
 print("Saving within-individuals variation matrix for context: ")
 for(i in 1:length(contexts)){
   print(contexts[i])
-  wexp_t = wexp_all[grep(pattern = contexts[i], rownames(wexp_all)),]
+  wexp_t = wexp_all[grep(pattern = paste0(contexts[i],"$"), rownames(wexp_all)),]
   rownames(wexp_t)=gsub(pattern = paste0("_",contexts[i]), replacement = "", x = rownames(wexp_t))
   fwrite(x = data.table(t(wexp_t),keep.rownames = T) %>% {setnames(., old = "rn", new = "geneID")[]}, 
          file = paste0(data_dir,contexts[i],"_specific_expression.txt"),quote = F, row.names = F, 
