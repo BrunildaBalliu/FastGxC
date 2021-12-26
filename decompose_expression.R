@@ -1,7 +1,7 @@
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-#%%%%%%%%%%%%%%% Brunilda Balliu 
-#%%%%%%%%%%%%%%% April 2nd 2020
 #%%%%%%%%%%%%%%% Script to decompose expression into shared and context specific components
+#%%%%%%%%%%%%%%% Brunilda Balliu 
+#%%%%%%%%%%%%%%% December 1st 2021
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 #%%%%%%%%%%%%%%%  Directories for input and output files 
@@ -10,29 +10,12 @@ work_dir = args[1]
 exp_mat_filename = args[2]
 data_dir=paste0(work_dir,'/data/') # directory with phenotype and genotype data1
 if(!dir.exists(data_dir)) dir.create(data_dir)
+source(paste0(work_dir, "/functions.R"))
 
 #%%%%%%%%%%%%%%% R libraries 
 library(data.table)
 library(reshape2)
 library(magrittr)
-
-#%%%%%%%%%%%%%%% Function to decompose expression into context-shared and context-specific components
-decompose=function(X,design){
-  X = as.matrix(X)
-  rep.measures = factor(design)
-  if (any(summary(as.factor(rep.measures)) == 1)) 
-    stop("A multilevel analysis can not be performed when at least one some sample is not repeated.")
-  indiv.names = rownames(X)
-  rownames(X) = as.character(rep.measures)
-  X.mean.indiv = matrix(apply(X, 2, tapply, rep.measures, mean, na.rm = TRUE), 
-                        nrow = length(unique(rep.measures)), 
-                        ncol = dim(X)[2], 
-                        dimnames = list(levels(as.factor(rep.measures)), colnames(X)))
-  Xb = X.mean.indiv[as.character(rep.measures), ]
-  Xw = X - Xb
-  dimnames(Xw) = list(indiv.names, colnames(X))
-  return(list(Xw=Xw,Xb=X.mean.indiv))
-}
 
 #%%%%%%%%%%%%%%% Read expression matrix, genes in columns, samples in rows.
 exp_mat=read.table(file = paste0(data_dir,exp_mat_filename), sep = '\t')

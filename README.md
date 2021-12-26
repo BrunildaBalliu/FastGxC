@@ -13,7 +13,8 @@ FastGxC works in three steps.
 
 *Step 0*: If you want to run a toy example, you can generate simulated data by running 
 
-  Rscript generate_simulated_data.R "/Users/bballiu/Documents/GitHub/FastGxC"
+number of individuals
+  Rscript generate_simulated_data.R "/Users/bballiu/Documents/GitHub/FastGxC" 
 
 This script will make a _data_ folder in _your_project_directory_ (if one does not already exists) and generate and save the following files 
 (1) SNPs.txt: snp genotype data for 50 SNPs and 300 individuals (MatrixEQTL input format), 
@@ -31,10 +32,10 @@ This script will take as an imput a file with gene expression data for all indiv
 
   Rscript run_MatrixEQTL_by_context.R "/Users/bballiu/Documents/GitHub/FastGxC" SNPs.txt snpsloc.txt context_shared_expression.txt geneloc.txt "context_shared_eQTLs.txt"
 
-  for i in $(seq 1 5); do
+  for i in $(seq 1 50); do
     Rscript run_MatrixEQTL_by_context.R "/Users/bballiu/Documents/GitHub/FastGxC" SNPs.txt snpsloc.txt context$i\_specific\_expression.txt geneloc.txt context$i\_specific\_eQTLs.txt
   done
 
+*Step 3*: FastGxC performs multiple testing adjustment across all contexts, genes, and genetic variants tested using the hierarchical FDR procedures implemented in the R package TreeQTL. This step can be replaced with other methods to adjust for multiple testing, e.g. mashR https://github.com/stephenslab/mashr. This can lead to a considerable increase in power! 
 
-
-*Step 3*: FastGxC performs multiple testing adjustment across all contexts, genes, and genetic variants tested using the hierarchical FDR procedures implemented in the R package TreeQTL. This is done using the script _run_TreeQTL.R_ This step can be replaced with other methods to adjust for multiple testing, e.g. mashR https://github.com/stephenslab/mashr. This can lead to a considerable increase in power! 
+This is done using the script _run_TreeQTL.R_ 

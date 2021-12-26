@@ -1,7 +1,7 @@
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-#%%%%%%%%%%%%%%% Brunilda Balliu 
-#%%%%%%%%%%%%%%% April 2nd 2020
 #%%%%%%%%%%%%%%% Script to generate simulated SNP and expression data
+#%%%%%%%%%%%%%%% Brunilda Balliu 
+#%%%%%%%%%%%%%%% December 1st 2021
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -22,12 +22,11 @@ library(dplyr)
 
 # Parameters
 N = 300 # number of individuals
-n_genes = 3 # number of genes
-n_snps_per_gene=2 # number of cis-SNPs per gene
-n_contexts = 5 # number of contexts (e.g. tissues or cell types)
+n_genes = 100 # number of genes
+n_snps_per_gene= 100 # number of cis-SNPs per gene
+n_contexts = 50 # number of contexts (e.g. tissues or cell types)
 mus = c(rep(0, n_contexts-1),0) # gene expression mean in each context for genotype = 0
 maf = 0.1 # genotype minor allele frequency
-hsq = c(rep(0.2, n_contexts-1),0.4) # expression heritability, i.e. proportion of gene expression variance explained by genetics, in each context
 
 # Error variance-covariance matrix
 w_corr = 0.2 # error covariance between contexts
@@ -42,14 +41,18 @@ rownames(genos) = paste0("ind",1:N)
 write.table(x = t(data.table(genos, keep.rownames = T) %>% rename(snpid=rn)), file = paste0(data_dir,"SNPs.txt"), quote = F, sep = '\t', row.names = T, col.names = F)
 
 # Save SNP location file
-snp_loc=data.frame(snpid=colnames(genos), chr="chr1",pos=rep(x = seq(1,n_genes*1e9, by = 1e9), each=n_snps_per_gene))
+# Data frame with 3 initial columns (name, chrom, and position) that match standard SNP map file, followed by 1 column for each context with a 0/1 indicator of whether the given SNP passed QC in that tissue. 
+snp_loc=data.frame(snpid=colnames(genos), chr="chr1",pos=rep(x = seq(1,n_genes*1e9, by = 1e9), each=n_snps_per_gene), 
+                   matrix(data = 1, nrow = ncol(genos), ncol = n_contexts, dimnames = list(NULL, paste0("context",1:n_contexts))))
 write.table(x = snp_loc, file = paste0(data_dir,"snpsloc.txt"), quote = F, sep = '\t', row.names = F, col.names = T)
 
 # Save gene location file
+# data frame with 4 initial columns (name, chrom, and start and end position) that match standard gene map file, followed by 1 column for each context with a 0/1 indicator of whether the given gene passed QC in that context 
 gene_loc=data.frame(geneid=paste0("gene",1:n_genes), 
                     chr="chr1",
                     s1=seq(1,n_genes*1e9, by = 1e9), 
-                    s2=seq(1,n_genes*1e9, by = 1e9)+ 1000)
+                    s2=seq(1,n_genes*1e9, by = 1e9)+ 1000,
+                    matrix(data = 1, nrow = n_genes, ncol = n_contexts, dimnames = list(NULL, paste0("context",1:n_contexts))))
 write.table(x = gene_loc, file = paste0(data_dir,"geneloc.txt"), quote = F, sep = '\t', row.names = F, col.names = T)
 
 # Use only one snp per gene to generate expression
@@ -58,9 +61,15 @@ genos_with_effect = genos[,seq(from = 1, to = (n_snps_per_gene*n_genes), by = n_
 # Generate expression matrix
 exp_mat=expand.grid(iid=paste0("ind",1:N),context=paste0("context",1:n_contexts))
 
+
+which_context=rep_len(x = 1:n_contexts, length.out = n_genes)
+
 for(i in 1:n_genes){
   
   # Genotypic effect in each context for assumed heritability 
+  hsq=rep(NA, n_contexts)  # expression heritability, i.e. proportion of gene expression variance explained by genetics, in each context
+  hsq[which_context[i]]= 0.4
+  hsq[-which_context[i]]= rep(0.2, n_contexts-1)
   betas=sqrt((hsq*v_e)/((1-hsq)*var(genos_with_effect[,i]))) 
   
   # expression of gene per context without noise

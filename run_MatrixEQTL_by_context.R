@@ -1,7 +1,7 @@
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-#%%%%%%%%%%%%%%% Andrew Lu & Brunilda Balliu 
-#%%%%%%%%%%%%%%% April 2nd 2020
 #%%%%%%%%%%%%%%% Script to run Matrix EQTL by content
+#%%%%%%%%%%%%%%% Brunilda Balliu 
+#%%%%%%%%%%%%%%% December 1st 2021
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -27,11 +27,14 @@ gene_location_file_name = paste0(data_dir, args[5]);
 output_file_name_cis = paste0(out_dir, args[6]); 
 output_file_name_tra = tempfile();
 
-# SNP_file_name = paste0(data_dir, "SNPs.txt"); 
-# snps_location_file_name = paste0(data_dir, "snpsloc.txt"); 
-# expression_file_name = paste0(data_dir, "context_shared_expression.txt"); 
-# gene_location_file_name = paste0(data_dir, "geneloc.txt"); 
-# output_file_name_cis = paste0(out_dir, "context_shared_eQTLs.txt"); 
+# work_dir = getwd()
+# data_dir=paste0(work_dir,'/data/') # directory with phenotype and genotype data
+# out_dir=paste0(work_dir,'/results/') # MatrixEQTL output
+# SNP_file_name = paste0(data_dir, "SNPs.txt");
+# snps_location_file_name = paste0(data_dir, "snpsloc.txt");
+# expression_file_name = paste0(data_dir, "context_shared_expression.txt");
+# gene_location_file_name = paste0(data_dir, "geneloc.txt");
+# output_file_name_cis = paste0(out_dir, "context_shared_eQTLs.txt");
 # output_file_name_tra = tempfile();
 
 #%%%%%%%%%%%%%%%%%%%%%%%%
@@ -70,11 +73,7 @@ cisDist = 1e6;
 
 ## Raw gene expression data with gene position
 expression_mat=as.matrix(data.frame(fread(input = expression_file_name, header = T),row.names = 1, check.names = F))
-expression_mat=expression_mat[!apply(is.na(expression_mat), 1, all),] # Filter genes with NA across all samples
-expression_mat=expression_mat[,!apply(is.na(expression_mat), 2, all)] # Filter samples with NA across all genes
-
-genepos = read.table(file = gene_location_file_name, header = TRUE, stringsAsFactors = FALSE);
-genepos=genepos[genepos$geneid %in% rownames(expression_mat),] # keep positions only for tested genes
+genepos = read.table(file = gene_location_file_name, header = TRUE, stringsAsFactors = FALSE)[,1:4];
 
 ## Genotype data with snp position
 snps = SlicedData$new();
@@ -84,11 +83,11 @@ snps$fileSkipRows = 1;          # one row of column labels
 snps$fileSkipColumns = 1;       # one column of row labels
 snps$fileSliceSize = 2000;      # read file in slices of 2,000 rows
 snps$LoadFile(SNP_file_name);
-snps$ColumnSubsample(which(colnames(snps) %in% colnames(expression_mat))) # Match SNP and expression individuals
 
-snpspos = read.table(file = snps_location_file_name, header = TRUE, stringsAsFactors = FALSE);
+snpspos = read.table(file = snps_location_file_name, header = TRUE, stringsAsFactors = FALSE)[,1:3];
 
 ## Make sure order of individuals is the same in gene expression and genotype matrices  
+snps$ColumnSubsample(which(colnames(snps) %in% colnames(expression_mat))) # Match SNP and expression individuals
 expression_mat=expression_mat[,colnames(snps)]
 gene = SlicedData$new();
 gene$CreateFromMatrix(expression_mat)
