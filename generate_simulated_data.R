@@ -8,7 +8,7 @@
 # Directories for input and output files 
 args=commandArgs(TRUE)
 work_dir = args[1]
-data_dir=paste0(work_dir,'/data/') # directory with phenotype and genotype data
+data_dir=paste0(work_dir,'data/') # directory with phenotype and genotype data
 if(!dir.exists(data_dir)) dir.create(data_dir)
 
 # Required libraries
@@ -60,7 +60,6 @@ genos_with_effect = genos[,seq(from = 1, to = (n_snps_per_gene*n_genes), by = n_
 
 # Generate expression matrix
 exp_mat=expand.grid(iid=paste0("ind",1:N),context=paste0("context",1:n_contexts))
-
 
 which_context=rep_len(x = 1:n_contexts, length.out = n_genes)
 

@@ -8,9 +8,9 @@
 args=commandArgs(TRUE)
 work_dir = args[1]
 exp_mat_filename = args[2]
-data_dir=paste0(work_dir,'/data/') # directory with phenotype and genotype data1
+data_dir=paste0(work_dir,'data/') # directory with phenotype and genotype data1
 if(!dir.exists(data_dir)) dir.create(data_dir)
-source(paste0(work_dir, "/functions.R"))
+source(paste0(work_dir, "functions.R"))
 
 #%%%%%%%%%%%%%%% R libraries 
 library(data.table)
