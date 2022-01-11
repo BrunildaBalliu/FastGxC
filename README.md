@@ -12,7 +12,7 @@ Please download the required R packages inside `generate_simulated_data.R` befor
 
 If you want to run a toy example, you can generate simulated data by running 
 ```
-  project_directory="/Users/bballiu/Documents/GitHub/FastGxC/"
+  project_directory=your_project_directory
   
   Rscript generate_simulated_data.R $project_directory
 ```
@@ -28,10 +28,10 @@ Please download the required R packages inside `decompose_expression.R` and `run
 
 FastGxC works in two steps. In the first step, expression is decomposed into shared and context-specific components. In the second step, eQTLs are separately mapped on these components.
 
-*Step 1 - Decomposition: * For each individual, decompose the phenotype of interest (e.g. gene expression) across C contexts (e.g. tissues or cell-types) into one context-shared and C context-specific components by running. 
+*Step 1 - Decomposition:* For each individual, decompose the phenotype of interest (e.g. gene expression) across C contexts (e.g. tissues or cell-types) into one context-shared and C context-specific components by running. 
   
   ```
-  project_directory="/Users/bballiu/Documents/GitHub/FastGxC/"
+  project_directory=your_project_directory
   exp_file_name="expression.txt"
   Rscript decompose_expression.R $project_directory $exp_file_name
   ```
@@ -42,7 +42,7 @@ This script will take as an imput a file with gene expression data for all indiv
 
 Map context-specific eQTLs
 ```  
-project_directory="/Users/bballiu/Documents/GitHub/FastGxC/"
+project_directory=your_project_directory
 
 for i in $(seq 1 50); do
     Rscript run_MatrixEQTL.R $project_directory SNPs.txt snpsloc.txt context$i\_specific\_expression.txt geneloc.txt  context$i\_specific\_eQTLs.txt specific
@@ -65,13 +65,13 @@ TreeQTL requires that you run MatrixEQTL to do eQTL mapping (see step 2 above). 
 
 Map specific-eGenes, i.e., genes with at least one context-specific eQT  
 ```  
-project_directory="/Users/bballiu/Documents/GitHub/FastGxC/"
+project_directory=your_project_directory
 Rscript run_TreeQTL.R $project_directory specific
 ```
 
 Map shared-eGenes, i.e., genes with at least one context-shared eQT  
 ```  
-project_directory="/Users/bballiu/Documents/GitHub/FastGxC/"
+project_directory=your_project_directory
 Rscript run_TreeQTL.R $project_directory shared
 ```
 
