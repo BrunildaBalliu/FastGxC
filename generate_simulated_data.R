@@ -14,7 +14,6 @@ if(!dir.exists(data_dir)) dir.create(data_dir)
 # Required libraries
 library(mvtnorm)
 library(reshape2)
-library(mppa)
 library(MatrixEQTL)
 library(ggplot2)
 library(data.table)
