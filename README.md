@@ -43,8 +43,9 @@ This script will take as an imput a file with gene expression data for all indiv
 Map context-specific eQTLs
 ```  
 project_directory=your_project_directory
+nC = your_nummber_of_contexts
 
-for i in $(seq 1 50); do
+for i in $(seq 1 nC); do
     Rscript run_MatrixEQTL.R $project_directory SNPs.txt snpsloc.txt context$i\_specific\_expression.txt geneloc.txt  context$i\_specific\_eQTLs.txt specific
  done
 ```
